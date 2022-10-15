@@ -140,7 +140,8 @@ public class ALDIRobot extends TeamRobot {
 
             case 2: // Tracking 
                 System.out.println("Tuesday");
-                
+                setTurnRadarRight(10); //Para que gire 360 grados porque gira 90 grados menos....
+                execute();
                 localizar_enemigo();
                 break;
             case 3:  // dirigirse enemigo
@@ -175,56 +176,49 @@ public class ALDIRobot extends TeamRobot {
 
     public void localizar_enemigo(){
         double r_heading = getRadarHeading(), heading = getHeading();
-        if(!encontrado){
-            setTurnRadarRight(5);
-            execute();
-            //run();
-            //localizar_enemigo();
+
+        if(heading <= 270){
+            if(r_heading > heading) turnRight(r_heading- heading);
+            else turnLeft(heading - r_heading);
         }
-        if(encontrado){
-            /*if(heading <= 270){
-                if(r_heading > heading) turnRight(r_heading- heading);
-                else turnLeft(heading - r_heading);
-            }
-            else { //headin > 270
-                if(r_heading>270){
-                    if(r_heading > heading){
-                        turnRight(r_heading- heading);
-                    } 
-                    else{
-                        turnLeft(heading - r_heading);
-                    } 
-                }
+        else { //headin > 270
+            if(r_heading>270){
+                if(r_heading > heading){
+                    turnRight(r_heading- heading);
+                } 
                 else{
-                    turnLeft(heading-r_heading);
-                }
-            }*/
+                    turnLeft(heading - r_heading);
+                } 
+            }
+            else{
+                turnLeft(heading-r_heading);
+            }
         }
     }
 
     public void copia(LinkedList<node> l1, LinkedList<node> l2) { // li ==> tx l2==> enemigos
-        System.out.println("en la funcion de copia(2linkedlist)");
+        //System.out.println("en la funcion de copia(2linkedlist)");
         print(l1);
-        System.out.println("");
+        //System.out.println("");
         if (l1.isEmpty()) {
             for (int i = 0; i < l2.size(); i++) {
                 l1.add(l2.get(i));
-                System.out.println("11 AÑADIENDO --> " + l2.get(i).name);
+                //System.out.println("11 AÑADIENDO --> " + l2.get(i).name);
             }
             Collections.sort(l1);
         } else {
 
-            System.out.println("22 REMOVING ... --> ");
+            //System.out.println("22 REMOVING ... --> ");
             l1.clear();
 
-            print(l1);
-            System.out.println("");
+            //print(l1);
+            //System.out.println("");
             for (int i = 0; i < l2.size(); i++) {
                 l1.add(l2.get(i));
-                System.out.println("22 AÑADIENDO --> " + l2.get(i).name);
+                //System.out.println("22 AÑADIENDO --> " + l2.get(i).name);
             }
-            print(l1);
-            System.out.println("");
+            //print(l1);
+            //System.out.println("");
             Collections.sort(l1);
         }
 
@@ -284,7 +278,7 @@ public class ALDIRobot extends TeamRobot {
                 }
             }
         }
-
+        /*
         System.out.println("22######### IMPRIMIENDO T1: ");
         print(t1);
         System.out.println("");
@@ -300,7 +294,7 @@ public class ALDIRobot extends TeamRobot {
         System.out.println("22######### IMPRIMIENDO T5: ");
         print(t5);
         System.out.println("");
-
+        */
         if (t1.size() == 5 && t2.size() == 5 && t3.size() == 5 && t4.size() == 5 && t5.size() == 5) {
             System.out.println("22#########22#########22#########22######### llenos = true");
             llenos = true;
@@ -374,15 +368,14 @@ public class ALDIRobot extends TeamRobot {
             }
         }
 
-        System.out.println("<<<<<<<<<<<<<<<<<<<<Imprimiendo list_enemigos>>>>>>>>>>>>>>>>>>>>>>");
+        //System.out.println("<<<<<<<<<<<<<<<<<<<<Imprimiendo list_enemigos>>>>>>>>>>>>>>>>>>>>>>");
         for (int i = 0; i < list_enemigos.size(); i++) {
             System.out.print(" - " + list_enemigos.get(i));
         }
-        System.out.println("");
-        System.out.println("<<<<<<<<<<<<<<<<<<<<-------------- enemigo_cercano = " + enemigo_cercano.name
-                + " --------------->>>>>>>>>>>>>>>>>>>>>>");
+        //System.out.println("");
+        //System.out.println("<<<<<<<<<<<<<<<<<<<<-------------- enemigo_cercano = " + enemigo_cercano.name + " --------------->>>>>>>>>>>>>>>>>>>>>>");
 
-        System.out.println("--------------------------HE ACABADO LA FUNCION---------------------------");
+        //System.out.println("--------------------------HE ACABADO LA FUNCION---------------------------");
 
         if (enemigo_cercano != null) {
             estado = 2;
@@ -731,15 +724,18 @@ public class ALDIRobot extends TeamRobot {
             
             break;
         case 2:
-            if((enemigo_cercano.name).equals(e.getName())){
-                encontrado = true;
-                //run();
-                localizar_enemigo();
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!! ENCONTRADOOO !!!!!!!!!!!!!!!!!!!!!!");
+            System.out.println("enemigo_cercano.name: "+ enemigo_cercano.name);
+            System.out.println("e.getName(): "+ e.getName());
+            while(! (enemigo_cercano.name).equals(e.getName())){
+                setTurnRadarRight(10);
+                execute();
             }
-            else{
-                run();
-            }
+            System.out.println("Encontrado");
+            encontrado = true;
+            estado = 3;
+            run();
+            
+            
             //;
             break; 
         }
