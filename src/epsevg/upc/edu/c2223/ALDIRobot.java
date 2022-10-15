@@ -67,6 +67,7 @@ public class ALDIRobot extends TeamRobot {
     static node EnemigoRecibido;
 
     static int estado = 0;
+    static private double e_bearing;
 
     /**
      *
@@ -139,9 +140,17 @@ public class ALDIRobot extends TeamRobot {
                 break;
 
             case 2: // Tracking 
-                System.out.println("Tuesday");
+                System.out.println("Tuesday --> encontrado: "+encontrado);
+                if(!encontrado){
+                    execute();
+                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Angulo Restante2: "+getRadarTurnRemaining());
+                    setTurnRadarRight(450); //Para que gire 360 grados porque gira 90 grados menos....
+
+                    execute();
+                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Angulo Restante2: "+getRadarTurnRemaining());
+                }
+                else localizar_enemigo();
                 
-                localizar_enemigo();
                 break;
             case 3:  // dirigirse enemigo
                 System.out.println("Wednesday");
@@ -174,32 +183,51 @@ public class ALDIRobot extends TeamRobot {
     }
 
     public void localizar_enemigo(){
-        double r_heading = getRadarHeading(), heading = getHeading();
-        if(!encontrado){
-            setTurnRadarRight(5);
-            execute();
-            //run();
-            //localizar_enemigo();
-        }
-        if(encontrado){
-            /*if(heading <= 270){
-                if(r_heading > heading) turnRight(r_heading- heading);
-                else turnLeft(heading - r_heading);
+        System.out.println("@@@@@@@@ DENTRO DE : localizar_enemigo() & encontrado: " + encontrado);
+        double r_heading = e_bearing, g_heading = getGunHeading();
+        System.out.println("@@@@antes@@@@ e_bearing: "+e_bearing+"    getGunHeading(): " + getGunHeading());
+        //if(encontrado){
+        double grados_girados;
+        if(g_heading <= 270){
+            if(r_heading > g_heading){
+                grados_girados = r_heading- g_heading;
+                setTurnGunRight(grados_girados);
             }
-            else { //headin > 270
-                if(r_heading>270){
-                    if(r_heading > heading){
-                        turnRight(r_heading- heading);
-                    } 
-                    else{
-                        turnLeft(heading - r_heading);
-                    } 
-                }
-                else{
-                    turnLeft(heading-r_heading);
-                }
-            }*/
+            else{
+                grados_girados = g_heading - r_heading;
+                setTurnGunLeft(grados_girados);
+            }
+
         }
+        else { //headin > 270
+            if(r_heading>270){
+                if(r_heading > g_heading){
+                    grados_girados = r_heading- g_heading;
+                    setTurnGunRight(grados_girados);
+                } 
+                else{
+                    grados_girados = g_heading - r_heading;
+                    setTurnGunLeft(grados_girados);
+                } 
+            }
+            else{
+                grados_girados = g_heading-r_heading;
+                setTurnGunLeft(grados_girados);
+            }
+        }
+
+        execute();
+
+        System.out.println("@@@despues@@@@@ e_bearing: "+e_bearing+"    getGunHeading(): " + getGunHeading()+"  ==> grados_girados: "+grados_girados);
+        if(getGunHeading() != r_heading){
+            System.out.println("Dentro: g_heading != r_heading");
+            localizar_enemigo();
+        }
+        
+            setFire(2);execute();
+            setFire(2);execute();
+            setFire(2);execute();
+        //}
     }
 
     public void copia(LinkedList<node> l1, LinkedList<node> l2) { // li ==> tx l2==> enemigos
@@ -693,7 +721,7 @@ public class ALDIRobot extends TeamRobot {
 
     @Override
     public void onScannedRobot(ScannedRobotEvent e) {
-
+        System.out.println(">> ESTOY DETECTANDO AL ROBOT: "+e.getName());
         String name = e.getName();
         switch(estado){
             case 0:
@@ -701,8 +729,7 @@ public class ALDIRobot extends TeamRobot {
                 double distancia_enemigo = e.getDistance();
                 
                 System.out.println("BEaring: "+e.getBearing()+ " Del robot: "+ e.getName());
-                // System.out.println("ESTOY A ESTA DISTANCIA "+ distancia_enemigo +"DEL
-                // ENEMIGO: "+ name);
+                System.out.println("ESTOY A ESTA DISTANCIA "+ distancia_enemigo +"DEL ENEMIGO: "+ name);
                 node n = new node(distancia_enemigo, name);
 
                 boolean find = false;
@@ -733,13 +760,16 @@ public class ALDIRobot extends TeamRobot {
         case 2:
             if((enemigo_cercano.name).equals(e.getName())){
                 encontrado = true;
+                e_bearing = Math.toDegrees(getRadarHeadingRadians()); //e.getBearing();
+                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!getRadarHeadingRadians(): "+e_bearing+"   e.getBearing():"+e.getBearing()+" !!!!!!!!!!!!!!!!!!!!!!");
                 //run();
-                localizar_enemigo();
+                //localizar_enemigo();
                 System.out.println("!!!!!!!!!!!!!!!!!!!!!!! ENCONTRADOOO !!!!!!!!!!!!!!!!!!!!!!");
-            }
-            else{
                 run();
             }
+            //else{
+                
+            //}
             //;
             break; 
         }
