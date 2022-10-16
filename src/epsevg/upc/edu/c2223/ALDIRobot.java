@@ -21,9 +21,12 @@ import java.util.List;
 //import robocode.util;
 import java.lang.Math;
 import java.util.concurrent.TimeUnit;
+import robocode.Condition;
 import robocode.HitRobotEvent;
 import robocode.HitWallEvent;
 import robocode.RobotDeathEvent;
+import robocode.Rules;
+import robocode.util.Utils;
 
 /**
  *
@@ -66,8 +69,11 @@ public class ALDIRobot extends TeamRobot {
     // --------------------------------------------------------------
     static node EnemigoRecibido;
 
-    static int estado = 0;
+    static int estado = 0, estado_scanned = 0;
     static private double e_bearing;
+    
+    //declaracion variables case3
+   
 
     /**
      *
@@ -80,16 +86,15 @@ public class ALDIRobot extends TeamRobot {
         }
     }
 
-    /*
-     * @Override
-     * public void onHitRobot(HitRobotEvent event) {
-     * if (event.getBearing() > -90 && event.getBearing() <= 90) {
-     * back(30);
-     * } else {
-     * ahead(30);
-     * }
-     * }
-     */
+    @Override
+    public void onHitRobot(HitRobotEvent event) {
+        if (event.getBearing() > -90 && event.getBearing() <= 90) {
+            back(150);
+        } else {
+            ahead(150);
+        }
+    }
+    
 
     // @Override
     // public void onHitWall(HitWallEvent event) {
@@ -100,134 +105,153 @@ public class ALDIRobot extends TeamRobot {
     // }
 
     public void run() {
+        execute();
         setAllColors(Color.RED);
         setAdjustGunForRobotTurn(false);
         setAdjustRadarForRobotTurn(false);
         setAdjustRadarForGunTurn(false);
-        
+        setGunColor(Color.black);
+        setRadarColor(Color.BLUE);
+        setScanColor(Color.green);
 
         // estado = 0;
 
         System.out.println("~~ENTRANDO EN SWITCH~~");
         // while(estado < 2){
-        switch (estado) {
-            case 0: // comunicar las distancias a mis compareos
+        //while(true){
+            switch (estado) {
+                case 0: // comunicar las distancias a mis compareos
 
-                    System.out.println("Angulo de giro: "+getRadarHeading());
-        
-                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Angulo Restante2: "+getRadarTurnRemaining());
-                        setTurnRadarRight(450); //Para que gire 360 grados porque gira 90 grados menos....
+                    System.out.println("Angulo de giro: " + getRadarHeading());
 
+
+                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Angulo Restante2: " + getRadarTurnRemaining());
+                    setTurnRadarRight(450); // Para que gire 360 grados porque gira 90 grados menos....
+
+                    execute();
+                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Angulo Restante2: " + getRadarTurnRemaining());
+                    // System.out.println("Angulo Restante: "+getRadarTurnRemaining());
+                    System.out.println("Angulo de radar: " + getRadarHeading());
+                    while (getRadarTurnRemaining() != 0.0) {
+
+                        setTurnRadarRight(getRadarTurnRemaining());
                         execute();
-                        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Angulo Restante2: "+getRadarTurnRemaining());
-                        //System.out.println("Angulo Restante: "+getRadarTurnRemaining());
-                        System.out.println("Angulo de radar: "+getRadarHeading());
-                        while(getRadarTurnRemaining() != 0.0){
+                        System.out.println(
+                                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Angulo Restante2: " + getRadarTurnRemaining());
+                        System.out.println("------------------------->Angulo de radar: " + getRadarHeading());
+                    }
 
-                            setTurnRadarRight(getRadarTurnRemaining());
-                            execute();
-                            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Angulo Restante2: "+getRadarTurnRemaining());
-                            System.out.println("------------------------->Angulo de radar: "+getRadarHeading());
-                        }
-                        
-                
-                break;
+                    break;
 
-            case 1: // asignación de enemigo //hacer pruebas primero con MyFirstDroid, Corner,
-                    // TeamCorner, MyFirstTeam
+                case 1: // asignación de enemigo //hacer pruebas primero con MyFirstDroid, Corner,
+                        // TeamCorner, MyFirstTeam
 
-                asignarEnemigo();
-                break;
+                    asignarEnemigo();
+                    break;
 
-            case 2: // Tracking 
-                System.out.println("Tuesday --> encontrado: "+encontrado);
-                if(!encontrado){
-                    execute();
-                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Angulo Restante2: "+getRadarTurnRemaining());
-                    setTurnRadarRight(450); //Para que gire 360 grados porque gira 90 grados menos....
+                case 2: // Tracking
+                    System.out.println("Tuesday --> encontrado: " + encontrado);
+                    // if(!encontrado){
+                    // execute();
+                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Angulo Restante2: " + getRadarTurnRemaining());
+                    // setTurnRadarRight(100); execute();
+                    // turnLeft(getHeading());
+                    // turnLeft(getHeading());
+                    if (!encontrado) {
+                        setTurnRadarRightRadians(Double.POSITIVE_INFINITY);
+                        execute();
+                    }
+                    estado = 3;
 
-                    execute();
-                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Angulo Restante2: "+getRadarTurnRemaining());
-                }
-                else localizar_enemigo();
-                
-                break;
-            case 3:  // dirigirse enemigo
-                System.out.println("Wednesday");
-                // ejecucion = false;
-                // estado = 4;
-                break;
-            case 4: // diparar enemigo
-                System.out.println("Thursday");
 
-                break;
-            case 5: // orbitar
-                System.out.println("Friday");
+                    break;
 
-                break;
-            case 6:
-                System.out.println("Saturday");
+                case 3: // dirigirse enemigo
+                    System.out.println("Wednesday");
+                    //execute();
+                    //setAhead(enemigo_cercano.distancia - 80);
+                    //execute();
+                    //estado = 4;
+                    break;
+                case 4: // diparar y orbitar
+                    System.out.println("Thursday");
 
-                break;
-            case 7:
-                System.out.println("Sunday");
+                    estado = 5;
+                    break;
+                case 5: // 
+                    System.out.println("Friday");
 
-                break;
-        }
+                    break;
+                case 6:
+                    System.out.println("Saturday");
 
-        // if(case == 2) break;
-        System.out.println("@@@@@@@@ ITERACION BUCLE");
-        // }
-        System.out.println("@@@@@@@@ FIN BUCLE  -- estado: " + estado);
+                    break;
+
+            }
+            // if(case == 2) break;
+            System.out.println("@@@@@@@@ ITERACION BUCLE");
+            System.out.println("@@@@@@@@ FIN BUCLE  -- estado: " + estado);
+        //}
+
+        
 
     }
 
-    public void localizar_enemigo(){
+    @Override
+    public void waitFor(Condition condition) {
+        Condition waitCondition = condition;
+        do {
+            execute(); // Always tick at least once
+        } while (!condition.test());
+        waitCondition = null;
+    }
+
+    public void localizar_enemigo() {
         System.out.println("@@@@@@@@ DENTRO DE : localizar_enemigo() & encontrado: " + encontrado);
         double r_heading = e_bearing, g_heading = getGunHeading();
-        System.out.println("@@@@antes@@@@ e_bearing: "+e_bearing+"    getGunHeading(): " + getGunHeading());
-        //if(encontrado){
+        System.out.println("@@@@antes@@@@ e_bearing: " + e_bearing + "    getGunHeading(): " + getGunHeading());
+        // if(encontrado){
         double grados_girados;
-        if(g_heading <= 270){
-            if(r_heading > g_heading){
-                grados_girados = r_heading- g_heading;
+        if (g_heading <= 270) {
+            if (r_heading > g_heading) {
+                grados_girados = r_heading - g_heading;
                 setTurnGunRight(grados_girados);
-            }
-            else{
+            } else {
                 grados_girados = g_heading - r_heading;
                 setTurnGunLeft(grados_girados);
             }
 
-        }
-        else { //headin > 270
-            if(r_heading>270){
-                if(r_heading > g_heading){
-                    grados_girados = r_heading- g_heading;
+        } else { // headin > 270
+            if (r_heading > 270) {
+                if (r_heading > g_heading) {
+                    grados_girados = r_heading - g_heading;
                     setTurnGunRight(grados_girados);
-                } 
-                else{
+                } else {
                     grados_girados = g_heading - r_heading;
                     setTurnGunLeft(grados_girados);
-                } 
-            }
-            else{
-                grados_girados = g_heading-r_heading;
+                }
+            } else {
+                grados_girados = g_heading - r_heading;
                 setTurnGunLeft(grados_girados);
             }
         }
 
         execute();
 
-        System.out.println("@@@despues@@@@@ e_bearing: "+e_bearing+"    getGunHeading(): " + getGunHeading()+"  ==> grados_girados: "+grados_girados);
-        if(getGunHeading() != r_heading){
+        System.out.println("@@@despues@@@@@ e_bearing: " + e_bearing + "    getGunHeading(): " + getGunHeading()
+                + "  ==> grados_girados: " + grados_girados);
+        if (getGunHeading() != r_heading) {
             System.out.println("Dentro: g_heading != r_heading");
             localizar_enemigo();
         }
-        
-            setFire(2);execute();
-            setFire(2);execute();
-            setFire(2);execute();
-        //}
+
+        setFire(2);
+        execute();
+        setFire(2);
+        execute();
+        setFire(2);
+        execute();
+        // }
     }
 
     public void copia(LinkedList<node> l1, LinkedList<node> l2) { // li ==> tx l2==> enemigos
@@ -358,9 +382,11 @@ public class ALDIRobot extends TeamRobot {
     }
 
     public void asignarEnemigo() {
-        //System.out.println("()()()()() ESTOY EN --> asignarEnemigo()");
-        // System.out.println("()()()()() ESTOY EN --> asignarEnemigo() --> llenos:" + llenos);
-        // System.out.println("()()()()() ESTOY EN --> asignarEnemigo() --> enemigo_cercano:" + enemigo_cercano);
+        // System.out.println("()()()()() ESTOY EN --> asignarEnemigo()");
+        // System.out.println("()()()()() ESTOY EN --> asignarEnemigo() --> llenos:" +
+        // llenos);
+        // System.out.println("()()()()() ESTOY EN --> asignarEnemigo() -->
+        // enemigo_cercano:" + enemigo_cercano);
 
         String quien_soy = getName();
 
@@ -414,126 +440,16 @@ public class ALDIRobot extends TeamRobot {
 
         if (enemigo_cercano != null) {
             estado = 2;
+            estado_scanned = 2;
             run();
         }
 
     }
 
-    // public void matar_enemigo(){
-    // print(enemigos);
-
-    // while(!encontrado){
-    // turnRadarRight(5);
-    // }
-
-    // if(encontrado){
-    //     double r_heading=getRadarHeading(), g_heading = getGunHeading(), heading = getHeading();
-    //     if(kamikaze.equals(getName())){
-
-    //     if(heading <= 270){
-    //         if(r_heading > heading) turnRight(r_heading- heading);
-    //         else turnLeft(heading - r_heading);
-    //     }
-    //     else { //headin > 270
-    //         if(r_heading>270){
-    //         if(r_heading > heading) turnRight(r_heading- heading);
-    //         else turnLeft(heading - r_heading);
-    //     }
-    //     else{
-    //         turnLeft(heading-r_heading);
-    //     }
-    //  }
-
-    // ahead(enemigo_cercano.distancia-30.0);
-
-    // g_heading = getGunHeading();
-    // r_heading=getRadarHeading();
-    // }else{
-
-    // if(r_heading <= g_heading) turnGunLeft(g_heading-r_heading);
-    // else if(r_heading>g_heading)turnGunRight(r_heading-g_heading);
-    // }
-
-    // while(!estoy_muerto){
-    // dispara(enemigo_cercano.distancia);
-    // }
-    // }
-    // encontrado = false;
-
-    // if(!enemigos.isEmpty())matar_enemigo();
-    // }
-
-    // public void dispara(double distancia_enemigo){
-    // if(distancia_enemigo >= 200) fire(1);
-    // else if(distancia_enemigo >= 50) fire(2);
-    // else fire(3);
-    // }
-
-    // public double calcularAngulo(double xtank, double ytank, int indice){
-    // double xc, yc;
-    // if(indice==0){
-    // xc= 0.0;
-    // yc= 0.0;
-    // }else if(indice==1){
-    // xc= 0.0;
-    // yc= getBattleFieldHeight();
-    // }else if(indice==2){
-    // xc= getBattleFieldWidth();
-    // yc= getBattleFieldHeight();
-    // }else{
-    // xc= getBattleFieldWidth();
-    // yc= 0.0;
-    // }
-    // double gamma = getHeading();
-    // System.out.println("Gamma: "+gamma);
-    // double a=xc-xtank;
-    // double b=yc-ytank;
-    // double alfa= Math.toDegrees(Math.atan2(b,a));
-    // System.out.println("Alfa: "+alfa);
-    // double beta=-gamma-(alfa-90.0);
-    // System.out.println("Beta: "+beta);
-
-    // return beta;
-    // }
 
     public double obtenirDistanciaEsquina(double xc, double xtank, double yc, double ytank) {
         return Math.sqrt((Math.pow((xc - xtank), 2)) + (Math.pow((yc - ytank), 2)));
     }
-
-    /*
-     * public void calculaDistancia(String CualTankSoy, double x, double y){
-     * 
-     * double margen = 75.0;
-     * double distancia_c0=obtenirDistanciaEsquina(0.0+margen, x, 0.0+margen, y);
-     * double distancia_c1=obtenirDistanciaEsquina(0.0+margen, x,
-     * getBattleFieldHeight()-margen, y);
-     * double distancia_c2=obtenirDistanciaEsquina(getBattleFieldWidth()-margen, x,
-     * getBattleFieldHeight()-margen, y);
-     * double distancia_c3=obtenirDistanciaEsquina(getBattleFieldWidth()-margen, x,
-     * 0.0+margen, y);
-     * 
-     * node n;
-     * n = new node(distancia_c0, CualTankSoy);
-     * c0.add(n);
-     * Collections.sort(c0); //añade y ordena la lista
-     * n = new node(distancia_c1, CualTankSoy);
-     * c1.add(n);
-     * Collections.sort(c1);
-     * n = new node(distancia_c2, CualTankSoy);
-     * c2.add(n);
-     * Collections.sort(c2);
-     * n = new node(distancia_c3, CualTankSoy);
-     * c3.add(n);
-     * Collections.sort(c3);
-     * 
-     * 
-     * if((c1.size() == 5) || (c0.size() == 5) || (c2.size() == 5) || (c3.size() ==
-     * 5)){
-     * AsignarCantonada();
-     * }
-     * 
-     * }
-     */
 
     public void remove(LinkedList<node> a, String name) {
         for (int i = 0; i < a.size(); i++) {
@@ -567,88 +483,7 @@ public class ALDIRobot extends TeamRobot {
 
     }
 
-    /*
-     * public void AsignarCantonada(){
-     * //tank_asig, distArray
-     * node n;
-     * //c0
-     * n = c0.getFirst();
-     * distArray.add(n);
-     * 
-     * remove(c1,n.name);
-     * remove(c2,n.name);
-     * remove(c3,n.name);
-     * //c1
-     * n = c1.getFirst();
-     * distArray.add(n);
-     * 
-     * remove(c2,n.name);
-     * remove(c3,n.name);
-     * //c2
-     * n = c2.getFirst();
-     * distArray.add(n);
-     * remove(c3,n.name);
-     * //c3
-     * n = c3.getFirst();
-     * distArray.add(n);
-     * remove(c3,n.name);
-     * kamikaze=c3.getFirst().name;
-     * 
-     * System.out.print("distArray --> ");
-     * print(distArray);
-     * System.out.println("El kamikaze es: "+kamikaze);
-     * try{
-     * broadcastMessage("kamikaze:"+kamikaze);
-     * }catch(IOException ignored){}
-     * 
-     * 
-     * enviarMensajesAsignación();
-     * 
-     * }
-     */
-
-    // public void centinella(int esquina) {
-    // double heading = getHeading();
-
-    // try {
-    // if ((heading <= 90.0) && (heading >= 0.0)) { // cuadrante I
-    // if ((esquina == 0) || (esquina == 1))
-    // turnRight(90.0 - heading);
-    // else
-    // turnLeft(90.0 + heading);
-    // } else if (((heading > 90.0) && (heading <= 180.0)) || ((heading > 180.0) &&
-    // (heading <= 270.0))) { // cuadrante II || cuadrante III
-    // if ((esquina == 0) || (esquina == 1))
-    // turnLeft(heading - 90.0);
-    // else
-    // turnRight(270.0 - heading);
-    // } else if ((heading > 270.0) && (heading <= 360.0)) { // cuadrante IV
-    // if ((esquina == 0) || (esquina == 1))
-    // turnRight((360.0 - heading) + 90.0);
-    // else
-    // turnLeft(heading - 270.0);
-    // }
-    // for(int i = 0; i < 3; i++){
-    // ahead(100);
-    // back(100);
-    // }
-    // } catch (Exception e) {
-    // System.out.println("EXCEPCION");
-    // }
-
-    // }
-
-    // public void girar(double angulo){
-    // if(angulo <=-180.0){
-    // angulo = 360+angulo;
-    // }else if(angulo>=180.0){
-    // angulo = 360-angulo;
-    // }
-    // System.out.println("Angulo convertido: "+angulo);
-    // turnRight(angulo);
-
-    // }
-
+  
     public void onMessageReceived(MessageEvent event) {
         out.println(event.getSender() + " sent me: " + event.getMessage()); // + " soy: "+event.getMessage().getClass()
         String mssg = (event.getMessage()).toString();
@@ -721,94 +556,93 @@ public class ALDIRobot extends TeamRobot {
 
     @Override
     public void onScannedRobot(ScannedRobotEvent e) {
-        System.out.println(">> ESTOY DETECTANDO AL ROBOT: "+e.getName());
+        System.out.println(">> ESTOY DETECTANDO AL ROBOT: " + e.getName());
         String name = e.getName();
-        switch(estado){
+        switch (estado_scanned) {
             case 0:
-            if (!isTeammate(name)) {
-                double distancia_enemigo = e.getDistance();
-                
-                System.out.println("BEaring: "+e.getBearing()+ " Del robot: "+ e.getName());
-                System.out.println("ESTOY A ESTA DISTANCIA "+ distancia_enemigo +"DEL ENEMIGO: "+ name);
-                node n = new node(distancia_enemigo, name);
+                if (!isTeammate(name)) {
+                    double distancia_enemigo = e.getDistance();
 
-                boolean find = false;
-                int i = 0;
-                while (!find && i < enemigos.size()) {
-                    if (enemigos.get(i).name.equals(name)) {
-                        if (enemigos.get(i).distancia != distancia_enemigo) { // si la distancia es diferente, hacer UPDATE
-                                                                            // distancia
-                            enemigos.get(i).distancia = distancia_enemigo;
-                            Collections.sort(enemigos);
+                    System.out.println("BEaring: " + e.getBearing() + " Del robot: " + e.getName());
+                    System.out.println("ESTOY A ESTA DISTANCIA " + distancia_enemigo + "DEL ENEMIGO: " + name);
+                    node n = new node(distancia_enemigo, name);
+
+                    boolean find = false;
+                    int i = 0;
+                    while (!find && i < enemigos.size()) {
+                        if (enemigos.get(i).name.equals(name)) {
+                            if (enemigos.get(i).distancia != distancia_enemigo) { // si la distancia es diferente, hacer UPDATE distancia
+                                enemigos.get(i).distancia = distancia_enemigo;
+                                Collections.sort(enemigos);
+                            }
+                            find = true;
                         }
-                        find = true;
+                        i++;
                     }
-                    i++;
+
+                    if (!find) {
+                        enemigos.add(n);
+                        Collections.sort(enemigos);
+                    }
                 }
 
-                if (!find) {
-                    enemigos.add(n);
-                    Collections.sort(enemigos);
-                }
-            }
+                if (enemigos.size() == 5)
+                    enviar_distancias();
 
+                break;
+            case 2:
+                if ((enemigo_cercano.name).equals(e.getName())) {
 
-            if (enemigos.size() == 5)
-                enviar_distancias();
-            
-            break;
-        case 2:
-            if((enemigo_cercano.name).equals(e.getName())){
-                encontrado = true;
-                e_bearing = Math.toDegrees(getRadarHeadingRadians()); //e.getBearing();
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!getRadarHeadingRadians(): "+e_bearing+"   e.getBearing():"+e.getBearing()+" !!!!!!!!!!!!!!!!!!!!!!");
-                //run();
-                //localizar_enemigo();
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!! ENCONTRADOOO !!!!!!!!!!!!!!!!!!!!!!");
-                run();
-            }
-            //else{
+                    encontrado = true;
+                    System.out.println("==========================================");
+                    double AbsAngleToEnemy = getHeadingRadians() + e.getBearingRadians();
+
+                    double radarTurn = Utils.normalRelativeAngle(AbsAngleToEnemy - getRadarHeadingRadians());
+                    double turretTurn = Utils.normalRelativeAngle(AbsAngleToEnemy - getGunHeadingRadians());
+                    double bodyTurn = Utils.normalRelativeAngle(AbsAngleToEnemy - getHeadingRadians()); // NEW
+
+                    System.out.println("RADAR_TURN_RATE_RADIANS: " + Rules.RADAR_TURN_RATE_RADIANS);
+
+                    double extraTurn = Math.min(Math.atan(45.0 / e.getDistance()), Rules.RADAR_TURN_RATE_RADIANS); 
+                    radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
+
+                    System.out.println("radarTurn: " + radarTurn);
+                    
+                    setTurnRadarRightRadians(radarTurn);
+                    setAdjustRadarForGunTurn(true);
+                    setTurnGunRightRadians(turretTurn);
+                    
+                    double get_gun = getGunHeadingRadians(), get_body = getHeadingRadians();
+                    if(get_gun > get_body)setTurnRightRadians(get_gun-get_body); //gira entero
+                    else setTurnLeftRadians(get_body-get_gun);
+                    
+                    setTurnGunRightRadians(turretTurn);
+                    
+                    System.out.println("IM LOOKING : " + Math.toDegrees(getHeadingRadians()) +"  --> bodyTurn: "+bodyTurn);
+                    System.out.println("RADAR IL LOOKING : " + Math.toDegrees(getRadarHeadingRadians()));
+                    System.out.println("GUN IL LOOKING : " + Math.toDegrees(getGunHeadingRadians()));
+                 
+
+                    System.out.println("--------------------------------------------");
+                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!! ENCONTRADOOO !!!!!!!!!!!!!!!!!!!!!!");
+                    System.out.println("--------------------------------------------");
                 
-            //}
-            //;
-            break; 
+                    
+                    estado = 3;
+                    estado_scanned=3;
+                    run();
+                    
+                } else {
+                    encontrado = false;
+                }
+                break;
         }
-
-
-        // if((enemigo_cercano != null) && (enemigo_cercano.name).equals(e.getName())){
-        // encontrado = true;
-        // }
     }
 
-    // @Override
-    // public void onRobotDeath(RobotDeathEvent e){
-    // String name = e.getName();
-    // System.out.println("Robot MUERTOOOOOOOOOOOO: " + name);
-    // remove(enemigos, name); //enemigos enemigo_cercano;
-    // print(enemigos);
-    // if(!enemigos.isEmpty()){
-    // if(enemigo_cercano.name == name){
-    // enemigo_cercano = enemigos.get(0);
-    // encontrado = false;
-    // estoy_muerto = true;
-    // }
-    // else{
-    // estoy_muerto = false;
-    // encontrado = false;
-    // }
-    // }else stop();
-    // }
-
-    // static int status = 0;
-    // @Override
-    // public void onHitByBullet(HitByBulletEvent e){
-    // if(status == 0){
-    // back(100);
-    // status = 1;
-    // }
-    // else if(status == 1){
-    // ahead(100);
-    // status = 0;
-    // }
-    // }
+    public void onHitByBullet(HitByBulletEvent e) {
+        setTurnLeft(180);
+        setAhead(100);
+        execute();
+        estado = 2;
+    }
 }
